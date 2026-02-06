@@ -1,0 +1,24 @@
+name: "Build LibreOffice"
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Nix
+      uses: cachix/install-nix-action@v25
+      with:
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+    
+    - name: Setup Cachix
+      uses: cachix/cachix-action@v14
+      with:
+        name: yuda-libreoffice-cache
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+
+    - name: Build LibreWolf
+      run: nix build github:NixOS/nixpkgs/nixos-unstable#libreoffice
