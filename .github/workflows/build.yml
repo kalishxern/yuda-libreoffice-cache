@@ -21,5 +21,5 @@ jobs:
         name: yuda-libreoffice-cache
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     
-    - name: Build LibreOffice from latest unstable
-      run: nix build github:NixOS/nixpkgs/nixpkgs-unstable#libreoffice --no-link
+    - name: Build and mirror LibreOffice to Cachix
+  run: cachix watch-exec yuda-libreoffice-cache nix build github:NixOS/nixpkgs/nixpkgs-unstable#libreoffice --no-link
