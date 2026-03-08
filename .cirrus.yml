@@ -1,19 +1,20 @@
 task:
   name: Build LibreOffice (8 Cores)
-  
   container:
     image: nixos/nix:latest
     cpu: 8
     memory: 24G
-
   env:
-    # Paste your ENCRYPTED[...] string here!
     CACHIX_AUTH_TOKEN: ENCRYPTED[!0427a056d291372c887553563871a3121bf194eea2cb0ccd46fde2d52a96ea8322c59ee6855bdade9dfd0f5722cf67ea!]
-
   setup_nix_script: |
     echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
-
   build_and_push_script: |
+    # 1. Authenticate with Cachix
     nix run nixpkgs#cachix -- authtoken $CACHIX_AUTH_TOKEN
+    
+    # 2. Tell Nix to USE the cache (so retries download previous progress)
     nix run nixpkgs#cachix -- use yuda-libreoffice-cache
-    nix build github:NixOS/nixpkgs/master#libreoffice --no-link --print-out-paths | nix run nixpkgs#cachix -- push yuda-libreoffice-cache
+    
+    # 3. Use watch-exec to build and push simultaneously
+    nix run nixpkgs#cachix -- watch-exec yuda-libreoffice-cache -- \
+    nix build github:NixOS/nixpkgs/master#libreoffice --no-link --print-out-paths
