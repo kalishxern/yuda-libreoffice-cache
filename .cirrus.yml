@@ -1,5 +1,6 @@
 task:
   name: Build LibreOffice (8 Cores)
+  timeout_in: 120m
   container:
     image: nixos/nix:latest
     cpu: 8
