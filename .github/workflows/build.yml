@@ -1,26 +1,31 @@
-name: "Build LibreOffice"
+name: Reproduce Hydra Build
+
 on:
-  schedule:
-    - cron: '0 0 1 * *'
   workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'Hydra Build ID'
+        required: true
+        default: '331551869'
+
 jobs:
-  build:
+  reproduce:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Nix
-      uses: cachix/install-nix-action@v25
-      with:
-        extra_nix_config: |
-          experimental-features = nix-command flakes
-    
-    - name: Setup Cachix
-      uses: cachix/cachix-action@v14
-      with:
-        name: yuda-libreoffice-cache
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-    
-    - name: Build and push LibreOffice to Cachix
-      run: |
-        nix build github:NixOS/nixpkgs/nixpkgs-unstable#libreoffice --no-link --print-out-paths | cachix push yuda-libreoffice-cache
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Reproduce Build
+        run: curl -sSfL "https://hydra.nixos.org/build/${{ github.event.inputs.build_id }}/reproduce" | bash
