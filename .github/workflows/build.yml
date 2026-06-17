@@ -12,26 +12,33 @@ jobs:
   reproduce:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf /opt/hostedtoolcache
-
-      - name: Install Nix
-        uses: cachix/install-nix-action@v31
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Install Nix (Determinate Systems)
+        uses: DeterminateSystems/nix-installer-action@1d87d45818068401a10cf16bdc5f00b24994a83f
+        with:
+          extra-conf: |
+            extra-experimental-features = flakes nix-command pipe-operators
 
       - name: Setup Cachix
-        uses: cachix/cachix-action@v17
+        uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71
         with:
           name: yuda-librewolf-cache
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          extraPullNames: nix-community
 
       - name: Reproduce and Push Build
-        run: curl -sSfL "https://hydra.nixos.org/build/${{ github.event.inputs.build_id }}/reproduce" | bash
+        run: |
+          curl -sSfL "https://hydra.nixos.org/build/${{ github.event.inputs.build_id }}/reproduce" | bash
